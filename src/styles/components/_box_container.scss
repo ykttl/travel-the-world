@@ -1,0 +1,30 @@
+.box_container {
+  display: flex;
+  justify-content: center;
+  margin: 40px;
+
+  .box_left {
+    width: 40%;
+    margin-right: 50px;
+
+    .flag {
+      text-align: center;
+
+      img {
+        width: auto;
+        height: 100px;
+        margin: 0px;
+      }
+    }
+    .wikiText {
+      //width: 600px;
+      //height: 200px;
+      //border: dashed;
+    }
+  }
+}
+
+.leaflet-container {
+  height: 350px;
+  width: 400px;
+}

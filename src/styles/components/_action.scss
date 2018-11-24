@@ -1,0 +1,14 @@
+.action_container {
+  text-align: center;
+
+  .button {
+    font-weight: bold;
+    font-size: $m-size;
+    background-color: rgba(145, 255, 0, 0.685);
+    margin-top: 20px;
+    border-radius: 5px;
+    width: 150px;
+    outline: none;
+    border: none;
+  }
+}
