@@ -2,13 +2,8 @@ import React, { Component } from "react";
 import { Map, Marker, Popup, TileLayer } from "react-leaflet";
 
 export default class ApiMap extends Component {
-  // constructor(props) {
-  //   super(props);
-  //   console.log(props);
-  // }
   render() {
     const position = [this.props.lat, this.props.lon];
-    console.log(position);
     const zoom = "3";
     return (
       <div>

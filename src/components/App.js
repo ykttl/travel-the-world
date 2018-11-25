@@ -6,7 +6,7 @@ import ApiMap from "./ApiMap";
 import Flag from "./Flag";
 import WikiInfo from "./WikiInfo";
 import CountryName from "./CountryName";
-import List from "../list_of_countries";
+import countryListJSON from "../list_of_countries";
 import keys from "../keys";
 
 export default class App extends Component {
@@ -14,68 +14,74 @@ export default class App extends Component {
     super(props);
     this.state = {
       rouletteIsRunning: true,
-      countryRoulette: "",
+      countryNameOnRoulette: "",
       countryName: "",
       countryCode: "",
       wikipediaText: "",
       stopButtonIsPressed: false,
       wikiError: false,
-      imgURL: "",
+      flickrPhotos: [],
       showMap: false,
       lat: "",
       lon: ""
     };
   }
+  componentDidMount = () => {
+    this.countryRoulette();
+  };
+  // randomly display a country name like a roulette
   countryRoulette = () => {
-    let result = [];
-    const callingCountries = () => {
+    let randomCountryName = "";
+    const roulette = () => {
       setTimeout(() => {
-        result = [];
+        randomCountryName = "";
         if (this.state.rouletteIsRunning === false) {
           return;
         }
-        result += List[Math.floor(Math.random() * 234)].name;
-        this.setState({ countryRoulette: result });
-
-        callingCountries();
+        randomCountryName =
+          countryListJSON[Math.floor(Math.random() * 234)].name;
+        this.setState({ countryNameOnRoulette: randomCountryName });
+        roulette();
       }, 80);
     };
-    callingCountries();
+    roulette();
   };
-  componentDidMount() {
-    this.countryRoulette();
-  }
-  getCountryName = () => {
+  stopRoulette = () => {
     if (this.state.rouletteIsRunning === false) {
-      this.setState({
-        rouletteIsRunning: true,
-        countryName: "",
-        wikipediaText: "",
-        countryCode: "",
-        wikiError: false,
-        imgURL: [],
-        showMap: false,
-        lat: "",
-        lon: ""
-      });
-      this.countryRoulette();
+      this.startRouletteAgain();
       return;
     }
-    this.setState(() => ({
+    this.setState({
       rouletteIsRunning: false,
-      countryRoulette: "",
+      countryNameOnRoulette: "",
       stopButtonIsPressed: false
-    }));
-
-    const countryData = List.find(
-      elem => elem.name === this.state.countryRoulette
+    });
+    this.setDataAndCallAPIs();
+  };
+  startRouletteAgain = () => {
+    this.setState({
+      // init state
+      rouletteIsRunning: true,
+      countryName: "",
+      wikipediaText: "",
+      countryCode: "",
+      wikiError: false,
+      flickrPhotos: [],
+      showMap: false,
+      lat: "",
+      lon: ""
+    });
+    this.countryRoulette();
+  };
+  setDataAndCallAPIs = () => {
+    // find data matching to roulette from country list
+    const countryData = countryListJSON.find(
+      listItem => listItem.name === this.state.countryNameOnRoulette
     );
-    const countryName = countryData.name;
-    const countryCode = countryData.code;
     this.setState(
       {
-        countryName: countryName,
-        countryCode: countryCode
+        countryName: countryData.name,
+        countryCode: countryData.code
       },
       () => {
         this.getCountryInfo();
@@ -84,48 +90,46 @@ export default class App extends Component {
       }
     );
   };
+  // wikipedia API
   getCountryInfo = async () => {
     const countryName = this.state.countryName;
+    // request the first two sentences of wiki page about the country
     const response = await fetch(
       `https://en.wikipedia.org/w/api.php?action=opensearch&origin=*&format=json&search="${countryName}"&limit=2`
     );
-    const json = await response.json();
-    if (json[2][0] === "") {
+    const JSON = await response.json();
+    if (JSON[2][0] === "" && JSON[2][1] === "") {
       this.setState({
         wikiError: true,
         wikipediaText: ""
       });
     }
     this.setState({
-      wikipediaText: json[2]
+      wikipediaText: JSON[2]
     });
   };
+  // flickr API
   getPictures = async () => {
     const countryName = this.state.countryName;
-    const response1 = await fetch(
+    const response = await fetch(
       `https://api.flickr.com/services/rest?api_key=${
-        keys.flickerAPI
+        keys.flickrAPI
       }&method=flickr.photos.search&format=json&text=${countryName}&extras=url_h&per_page=20&nojsoncallback=1&content_type=1&sort=interestingness-desc`
     );
-    const json1 = await response1.json();
-    const photoArray = json1.photos.photo.filter(x => x.url_h);
-    const array = [];
-    photoArray.forEach(x => array.push(x.url_h));
-    this.setState({ imgURL: array });
+    const JSON = await response.json();
+    const filteredJSON = JSON.photos.photo.filter(photo => photo.url_h); // remove photo without img URL
+    const photoArray = [];
+    filteredJSON.forEach(photo => photoArray.push(photo.url_h));
+    this.setState({ flickrPhotos: photoArray });
   };
+  // nominatim API to get longitude and latitude for map
   getGeocode = async () => {
     const countryName = this.state.countryName;
-    console.log(countryName);
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search/${countryName}?format=json`
     );
-    const json = await response.json();
-    console.log(json);
-    const lat = json[0].lat;
-    const lon = json[0].lon;
-    console.log(lat);
-
-    this.setState({ showMap: true, lat: lat, lon: lon });
+    const JSON = await response.json();
+    this.setState({ showMap: true, lat: JSON[0].lat, lon: JSON[0].lon });
   };
   changeButtonText = () => {
     this.setState(prevState => ({
@@ -138,8 +142,8 @@ export default class App extends Component {
         <div className="wrapper">
           <Header />
           <Action
-            countryRoulette={this.state.countryRoulette}
-            getCountryName={this.getCountryName}
+            countryNameOnRoulette={this.state.countryNameOnRoulette}
+            stopRoulette={this.stopRoulette}
             stopButtonIsPressed={this.state.stopButtonIsPressed}
             changeButtonText={this.changeButtonText}
           />
@@ -162,7 +166,7 @@ export default class App extends Component {
               </div>
             </div>
           )}
-          <Pictures imgURL={this.state.imgURL} />
+          <Pictures flickrPhotos={this.state.flickrPhotos} />
         </div>
       </div>
     );

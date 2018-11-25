@@ -9,8 +9,8 @@ export default class Pictures extends Component {
     return (
       <div className="pictures">
         <Masonry options={options}>
-          {this.props.imgURL &&
-            this.props.imgURL.map(x => <img src={x} className="item" />)}
+          {this.props.flickrPhotos &&
+            this.props.flickrPhotos.map(x => <img src={x} className="item" />)}
         </Masonry>
       </div>
     );

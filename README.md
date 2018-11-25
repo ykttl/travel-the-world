@@ -6,6 +6,6 @@ DEMO: https://ykttl.github.io/travel-the-world/
 
 - HTML5, Scss, Javascript, React
 
-- Wikipedia API, Flicker API, OpenStreetMap Nominatim
+- Wikipedia API, Flickr API, OpenStreetMap Nominatim
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
